@@ -80,11 +80,19 @@
             >
                 历史历程
             </button>
+            <button 
+                onclick="showPassengerHistoryModal()"
+                class="px-8 py-3 text-sm font-bold text-gray-400 uppercase tracking-[0.2rem] rounded-full cursor-pointer transition-all duration-300 border-2 border-gray-600 hover:border-[#c41e3a] hover:text-[#c41e3a]"
+            >
+                乘客记录
+            </button>
         </div>
         <p class="mt-5 text-gray-600 text-base tracking-[0.2rem]">点击开始公路之旅</p>
     </div>
 
     <script src="js/game_config/achievements-config.js"></script>
+    <script src="js/game_config/passenger-config.js"></script>
+    <script src="js/game_system/passenger-history.js"></script>
     <script>
         function startGame() {
             document.getElementById('container').classList.remove('animate-fade-in');
@@ -108,6 +116,7 @@
                 localStorage.removeItem('chinese_truck_adventure_endings');
                 localStorage.removeItem('chinese_truck_adventure_mileage_best');
                 localStorage.removeItem('chinese_truck_adventure_journey_history');
+                localStorage.removeItem('chinese_truck_adventure_passenger_history');
             } catch (e) {}
             
             // 显示提示

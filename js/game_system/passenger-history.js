@@ -1,26 +1,6 @@
 // 乘客历史记录系统
 // 用于记录和查看曾经上过车的所有乘客
 
-// 记录乘客上车（用于成就和历史记录查看）
-function recordPassengerBoarded(passengerName) {
-  if (!passengerName) return;
-  
-  // 初始化数组（如果还未初始化）
-  if (!Array.isArray(gameState.passengersEverOnBoard)) {
-    gameState.passengersEverOnBoard = [];
-  }
-  
-  // 如果该乘客还未被记录过，则添加到列表中
-  if (!gameState.passengersEverOnBoard.includes(passengerName)) {
-    gameState.passengersEverOnBoard.push(passengerName);
-  }
-  
-  // 保存到存档
-  if (typeof saveGame === "function") {
-    saveGame();
-  }
-}
-
 // 从 localStorage 加载乘客历史记录
 function loadPassengerHistory() {
   try {
@@ -37,6 +17,52 @@ function savePassengerHistory(history) {
   try {
     localStorage.setItem("chinese_truck_adventure_passenger_history", JSON.stringify(history));
   } catch (e) {}
+}
+
+// 记录乘客上车（用于成就和历史记录查看）
+function recordPassengerBoarded(passengerName) {
+  if (!passengerName) return;
+  
+  // 从 Cookie/当前游戏状态加载
+  let history = [];
+  try {
+    if (typeof gameState !== "undefined" && Array.isArray(gameState.passengersEverOnBoard)) {
+      history = [...gameState.passengersEverOnBoard];
+    }
+  } catch (e) {}
+  
+  // 合并 localStorage 中的历史（跨存档）
+  const savedHistory = loadPassengerHistory();
+  if (savedHistory && savedHistory.length > 0) {
+    savedHistory.forEach(function(p) {
+      if (!history.includes(p)) {
+        history.push(p);
+      }
+    });
+  }
+  
+  // 如果该乘客还未被记录过，则添加到列表中
+  if (!history.includes(passengerName)) {
+    history.push(passengerName);
+  }
+  
+  // 更新 gameState（如果可用）
+  if (typeof gameState !== "undefined") {
+    if (!Array.isArray(gameState.passengersEverOnBoard)) {
+      gameState.passengersEverOnBoard = [];
+    }
+    if (!gameState.passengersEverOnBoard.includes(passengerName)) {
+      gameState.passengersEverOnBoard.push(passengerName);
+    }
+  }
+  
+  // 保存到 localStorage（跨存档持久化）
+  savePassengerHistory(history);
+  
+  // 保存到 Cookie 存档
+  if (typeof saveGame === "function") {
+    saveGame();
+  }
 }
 
 // 获取乘客的详细信息（从配置中读取）
@@ -58,23 +84,8 @@ function getPassengerInfo(passengerName) {
 
 // 显示乘客历史模态框（在主菜单使用）
 function showPassengerHistoryModal() {
-  // 从 gameState 和 localStorage 加载数据
-  let history = [];
-  try {
-    // 优先从当前游戏状态读取
-    if (typeof gameState !== "undefined" && Array.isArray(gameState.passengersEverOnBoard)) {
-      history = [...gameState.passengersEverOnBoard];
-    }
-    // 合并 localStorage 中的历史（跨存档）
-    const savedHistory = loadPassengerHistory();
-    if (savedHistory && savedHistory.length > 0) {
-      savedHistory.forEach(function(p) {
-        if (!history.includes(p)) {
-          history.push(p);
-        }
-      });
-    }
-  } catch (e) {}
+  // 从 localStorage 加载数据（主菜单没有 gameState，只能从 localStorage 读取）
+  let history = loadPassengerHistory();
 
   // 生成 HTML
   let html = '<div class="fixed inset-0 bg-black/90 flex items-center justify-center z-50 overflow-y-auto p-4">';
